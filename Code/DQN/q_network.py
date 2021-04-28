@@ -23,8 +23,7 @@ import tensorflow.keras.layers as layers
 class Solver:
     def __init__(self, bandit):
         self.bandit = bandit
-
-        
+  
 
     def generate_sample_regret_trajectory(self, bandit):
         pass
@@ -131,7 +130,7 @@ class DQNModel(Solver):
         current_state = np.zeros((num_bandits, 2))
         rewards_generated = list()
         
-        for t in range(self.time_steps ):
+        for t in range(self.time_steps):
             q_values = self.Q_value_compute.predict(np.asarray([current_state]))[0]
             action_selected = np.argmax(q_values)
             action_encoded = tf.keras.utils.to_categorical(action_selected, bandit.k)
@@ -148,6 +147,3 @@ class DQNModel(Solver):
             
             current_state = np.copy( next_state )    
         return rewards_generated
-
-    
-
