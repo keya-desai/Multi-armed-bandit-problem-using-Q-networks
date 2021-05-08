@@ -302,12 +302,13 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
 
     min_regret = compute_min_regret(time_steps, test_bandit)
     for s in solvers:
-        # average_regret = s.estimate_average_regret_on_permutations(test_bandit)
+        
         print("Test bandit:")
         for k,v in test_bandit.mean_sd_list:
             print("{:.3f}\t{:.3f}".format(k, v))
 
-        average_regret = s.estimate_average_regret(test_bandit)
+        # average_regret = s.estimate_average_regret(test_bandit)
+        average_regret = s.estimate_average_regret_on_permutations(test_bandit)
         plt.plot(average_regret, label = "before")
 
         for i in range(rounds):
@@ -319,7 +320,7 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
             # for k,v in bandit.mean_sd_list:
             #     print("{:.3f}\t{:.3f}".format(k, v))
             # average_regret = s.estimate_average_regret_on_permutations(bandit)
-            average_regret = s.estimate_average_regret(test_bandit)
+            average_regret = s.estimate_average_regret_on_permutations(test_bandit)
 
             print("Round", str(i), "done.")
             plt.plot(average_regret, label = str((i+1)*episodes))
@@ -334,43 +335,52 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
 
 def main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
     
-    test_bandit_1 = NormalBandit(num_bandits) 
-    test_bandit_2 = NormalBandit(num_bandits) 
+    num_test_bandits = 2
+    test_bandits = [NormalBandit(num_bandits) for _ in range(num_test_bandits)]
     
     solvers = [
-    DQNModel(test_bandit_1, episodes, time_steps, trials, epsilon, beta)
+    DQNModel(test_bandits[0], episodes, time_steps, trials, epsilon, beta)
     # DoubleQModel(test_bandit, episodes, time_steps, trials, epsilon, beta)
     # ActorCritic(test_bandit, episodes, time_steps, trials, epsilon, beta)
     ]
 
-    min_regret_1 = compute_min_regret(time_steps, test_bandit_1)
-    for s in solvers:
-        # average_regret = s.estimate_average_regret_on_permutations(test_bandit)
-        print("\nTest bandit 1:")
-        for k,v in test_bandit_1.mean_sd_list:
+    for i in range(num_test_bandits):
+        print("\nTest bandit :", i+1)
+        bandit = test_bandits[i]
+
+        for k,v in bandit.mean_sd_list:
             print("{:.3f}\t{:.3f}".format(k, v))
+
+        min_regret = compute_min_regret(time_steps, bandit)
         
-        print("\nTest bandit 2:")
-        for k,v in test_bandit_2.mean_sd_list:
-            print("{:.3f}\t{:.3f}".format(k, v))
+        plt.subplot(1, 2, i+1)
+        plt.plot(min_regret, label = "min")
+        plt.legend()
+    
+    plt.show()
+    # exit()
+    
 
 
-        average_regret = s.estimate_average_regret(test_bandit)
+
+    # min_regret_1 = compute_min_regret(time_steps, test_bandit_1)
+    for s in solvers:
+        average_regret = s.estimate_average_regret_on_permutations(bandit)
         plt.plot(average_regret, label = "before")
-
+        
         for i in range(rounds):
             for j in range(episodes):
                 bandit = NormalBandit(num_bandits) 
                 s.train_on_one_pass(bandit)
             
-            # print(bandit.mean_sd_list)
-            # for k,v in bandit.mean_sd_list:
-            #     print("{:.3f}\t{:.3f}".format(k, v))
-            # average_regret = s.estimate_average_regret_on_permutations(bandit)
-            average_regret = s.estimate_average_regret(test_bandit)
 
+            for test_bandit_idx in range(num_test_bandits):
+                average_regret = s.estimate_average_regret_on_permutations(test_bandits[test_bandit_idx])
+                plt.subplot(1, 2, test_bandit_idx+1)
+                plt.plot(average_regret, label = str((i+1)*episodes))
+            
             print("Round", str(i), "done.")
-            plt.plot(average_regret, label = str((i+1)*episodes))
+            
 
         plt.plot(min_regret, '--', label = "Min regret")
         plt.title('Average regret v/s time steps for {} bandits. (epsilon = {}, beta = {})'.format(num_bandits, epsilon, beta))
@@ -382,13 +392,13 @@ def main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, 
 
 if __name__ == "__main__":
     num_bandits = 3
-    rounds = 5
+    rounds = 1
     
-    trials = 10
-    episodes = 10
+    trials = 2
+    episodes = 5
     # episodes = 5
 
-    time_steps = 100
+    time_steps = 10
     epsilon = 0.2
     beta = 0.9
-    compare_main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta)
+    main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta)

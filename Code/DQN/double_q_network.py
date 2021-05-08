@@ -110,7 +110,7 @@ class DoubleQModel(Solver):
 
 	def generate_sample_regret_trajectory(self, bandit):
 
-		max_reward = bandit.max_mean
+		max_reward = bandit.get_max_mean()
 		num_bandits = bandit.k
 		current_state = np.zeros((num_bandits, 2))
 		rewards_generated = list()
@@ -123,7 +123,8 @@ class DoubleQModel(Solver):
 			action_encoded = tf.keras.utils.to_categorical( action_selected, num_bandits )
 			
 			reward = bandit.generate_reward(action_selected)
-			rewards_generated.append( max_reward - reward )
+			bandit_mean = bandit.mean_sd_list[action_selected][0]
+			rewards_generated.append( max_reward - bandit_mean )
 			
 			bandit_mean  = current_state[ action_selected ][0]
 			bandit_count = current_state[ action_selected ][1]

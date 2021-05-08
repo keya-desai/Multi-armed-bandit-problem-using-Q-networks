@@ -115,6 +115,13 @@ class DQNModel(Solver):
             
             next_q_value = np.max(self.Q_value_compute.predict(np.asarray([next_state]))[0])
             q_update_value = reward + self.beta * next_q_value
+            # print(q_update_value)
+
+            if t == self.time_steps - 1:
+                if bandit.mean_sd_list[action_selected][0] == bandit.get_max_mean():
+                    q_update_value = 100
+                else:
+                    q_update_value = 0 
             
             state_input = np.asarray([current_state])
             
@@ -125,7 +132,7 @@ class DQNModel(Solver):
     def generate_sample_regret_trajectory(self, bandit):
         # mean_list = [value[0] for value in mu_sigma_dict.values()]
         # max_reward = np.max( mean_list )
-        max_reward = bandit.max_mean
+        max_reward = bandit.get_max_mean()
         num_bandits = bandit.k
         current_state = np.zeros((num_bandits, 2))
         rewards_generated = list()
@@ -136,7 +143,8 @@ class DQNModel(Solver):
             action_encoded = tf.keras.utils.to_categorical(action_selected, bandit.k)
             
             reward = bandit.generate_reward(action_selected)
-            rewards_generated.append( max_reward - reward )
+            bandit_mean = bandit.mean_sd_list[action_selected][0]
+            rewards_generated.append( max_reward - bandit_mean)
             
             bandit_mean  = current_state[ action_selected ][0]
             bandit_count = current_state[ action_selected ][1]
