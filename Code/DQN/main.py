@@ -45,6 +45,43 @@ class NormalBandit:
     def get_max_mean(self):
         return self.max_mean
 
+class NormalBanditWithSumZero:
+    
+    def __init__(self, k):
+        """
+        k: number of bandits 
+        """
+        self.k = k
+        self.mean_sd_list = [] # Storing mean and sd of each bandit
+        
+        self.max_mean = 0
+        self.max_i = 0
+        self.mean_sum = 0
+        
+        for i in range(k):
+            if i == k - 1:
+                mean = -self.mean_sum
+            else:
+                mean = random.uniform(-1, 1)
+            self.mean_sum += mean
+            sigma = random.uniform(0, 2)
+            self.mean_sd_list.append((mean, sigma))
+            
+            if mean > self.max_mean:
+                self.max_mean = mean
+                self.max_i = i
+        print("Mean sum check: ", self.mean_sum)
+        
+    def generate_reward(self, i):
+        mu, sigma = self.mean_sd_list[i]
+        return np.random.normal(mu, sigma)
+    
+    def generate_optimum_reward(self):
+        return self.generate_reward(self.max_i)
+
+    def get_max_mean(self):
+        return self.max_mean
+
 class ExponentialBandit:
 
     def __init__(self, k):
