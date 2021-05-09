@@ -290,7 +290,7 @@ def compare_main(num_bandits, time_steps, rounds, episodes, trials, epsilon, bet
         
 
 
-def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, reply_buffer = False):
+def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_buffer = False):
     
     test_bandit = NormalBandit(num_bandits)  
     
@@ -314,8 +314,8 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, reply
             for j in range(episodes):
                 bandit = NormalBandit(num_bandits) 
                 s.train_on_one_pass(bandit)
-                if reply_buffer and (j+1) % 5 == 0:
-                    s.reply_buffer()
+                if replay_buffer and (j+1) % 5 == 0:
+                    s.replay_buffer()
             
             # print(bandit.mean_sd_list)
             # for k,v in bandit.mean_sd_list:
@@ -331,7 +331,7 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, reply
         plt.xlabel('Time steps')
         plt.ylabel('Average regret over {} trials'.format(trials))
         plt.legend(title = 'Episode')
-        # plt.savefig('results/min_r_b{}_mu1_trials_{}_q'.format(num_ba=ndits, trials))
+        plt.savefig('results/replay_q_k{}_e{}'.format(num_bandits, episodes))
         plt.show()
 
 def main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
@@ -386,11 +386,11 @@ if __name__ == "__main__":
     num_bandits = 3
     rounds = 5
     
-    trials = 10
-    episodes = 10
+    trials = 2
+    episodes = 5
     # episodes = 5
 
-    time_steps = 100
+    time_steps = 10
     epsilon = 0.2
     beta = 0.9
-    compare_main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta)
+    main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_buffer = True)

@@ -132,22 +132,30 @@ class DQNModel(Solver):
                    
             current_state = np.copy(next_state) 
 
-    def replay_buffer(self, k = 100):
+    def replay_buffer(self, k = 2):
         self.buffer_data = np.asarray(self.buffer_data)
         print("Buffer data shape: ", self.buffer_data.shape)
 
         # Sampling k data points from replay buffer
         num_rows = self.buffer_data.shape[0]
-        random_indices = np.random.choice(num_rows, size=k, replace=False)
-        sampled_data = self.buffer_data[random_indices, :]
+        # num_rows = len(self.buffer_data)
+        random_indices = np.random.choice(num_rows, size = k, replace=False)
+        # print("random_indices = ", random_indices)
 
+        sampled_data = self.buffer_data[random_indices, :]
+        # print("buffer = ", self.buffer_data)
+        # print("sampled_data = ", sampled_data)
+
+        # sampled_data = list(sampled_data)
         # Input output
         input_data = sampled_data[:,:2]
         print("Input data shape: ", input_data.shape)
         output_data = sampled_data[:][-1]
         print("Output data shape: ", output_data.shape)
 
-        self.Q_value_selected.fit( input_data,  output_data , epochs = 1, verbose = False ) 
+        # input_data, output_data = list()
+
+        self.Q_value_selected.fit( list(input_data),  list(output_data) , epochs = 1, verbose = False ) 
         self.buffer_data = []
         return
 
