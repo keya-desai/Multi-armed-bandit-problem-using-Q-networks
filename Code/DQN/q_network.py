@@ -68,6 +68,7 @@ class DQNModel(Solver):
         self.trials = trials
         self.epsilon = epsilon
         self.beta = beta
+        self.buffer_data = []
         #########################################################################################################################################
         
         layer_init = tf.keras.initializers.VarianceScaling()
@@ -117,17 +118,38 @@ class DQNModel(Solver):
             q_update_value = reward + self.beta * next_q_value
             # print(q_update_value)
 
-            if t == self.time_steps - 1:
-                if bandit.mean_sd_list[action_selected][0] == bandit.get_max_mean():
-                    q_update_value = 100
-                else:
-                    q_update_value = 0 
+            # if t == self.time_steps - 1:
+            #     if bandit.mean_sd_list[action_selected][0] == bandit.get_max_mean():
+            #         q_update_value = 100
+            #     else:
+            #         q_update_value = 0 
             
             state_input = np.asarray([current_state])
             
-            self.Q_value_selected.fit( [ state_input, action_encoded ],  np.asarray( [ q_update_value ] ) , epochs = 1, verbose = False ) 
+            # Appending data for replay buffer
+            self.buffer_data.append([state_input, action_encoded, q_update_value ])
+            # self.Q_value_selected.fit( [ state_input, action_encoded ],  np.asarray( [ q_update_value ] ) , epochs = 1, verbose = False ) 
                    
-            current_state = np.copy(next_state)  
+            current_state = np.copy(next_state) 
+
+    def replay_buffer(self, k = 100):
+        self.buffer_data = np.asarray(self.buffer_data)
+        print("Buffer data shape: ", self.buffer_data.shape)
+
+        # Sampling k data points from replay buffer
+        num_rows = self.buffer_data.shape[0]
+        random_indices = np.random.choice(num_rows, size=k, replace=False)
+        sampled_data = self.buffer_data[random_indices, :]
+
+        # Input output
+        input_data = sampled_data[:,:2]
+        print("Input data shape: ", input_data.shape)
+        output_data = sampled_data[:][-1]
+        print("Output data shape: ", output_data.shape)
+
+        self.Q_value_selected.fit( input_data,  output_data , epochs = 1, verbose = False ) 
+        self.buffer_data = []
+        return
 
     def generate_sample_regret_trajectory(self, bandit):
         # mean_list = [value[0] for value in mu_sigma_dict.values()]

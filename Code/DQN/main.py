@@ -290,7 +290,7 @@ def compare_main(num_bandits, time_steps, rounds, episodes, trials, epsilon, bet
         
 
 
-def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
+def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, reply_buffer = False):
     
     test_bandit = NormalBandit(num_bandits)  
     
@@ -314,6 +314,8 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
             for j in range(episodes):
                 bandit = NormalBandit(num_bandits) 
                 s.train_on_one_pass(bandit)
+                if reply_buffer and (j+1) % 5 == 0:
+                    s.reply_buffer()
             
             # print(bandit.mean_sd_list)
             # for k,v in bandit.mean_sd_list:
