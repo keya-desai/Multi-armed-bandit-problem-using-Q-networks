@@ -61,7 +61,7 @@ class Solver:
 
 
 class DQNModel(Solver):
-    def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta):
+    def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta, replay_buffer = False):
         super().__init__(bandit)
         self.episodes = episodes
         self.time_steps = time_steps
@@ -69,6 +69,7 @@ class DQNModel(Solver):
         self.epsilon = epsilon
         self.beta = beta
         self.buffer_data = []
+        self.replay_buffer = replay_buffer
         #########################################################################################################################################
         
         layer_init = tf.keras.initializers.VarianceScaling()
@@ -117,22 +118,18 @@ class DQNModel(Solver):
             next_q_value = np.max(self.Q_value_compute.predict(np.asarray([next_state]))[0])
             q_update_value = reward + self.beta * next_q_value
             # print(q_update_value)
-
-            # if t == self.time_steps - 1:
-            #     if bandit.mean_sd_list[action_selected][0] == bandit.get_max_mean():
-            #         q_update_value = 100
-            #     else:
-            #         q_update_value = 0 
             
             state_input = np.asarray([current_state])
             
-            # Appending data for replay buffer
-            self.buffer_data.append([state_input, action_encoded, q_update_value ])
-            # self.Q_value_selected.fit( [ state_input, action_encoded ],  np.asarray( [ q_update_value ] ) , epochs = 1, verbose = False ) 
+            if not self.replay_buffer:
+                self.Q_value_selected.fit( [ state_input, action_encoded ],  np.asarray( [ q_update_value ] ) , epochs = 1, verbose = False ) 
+            else:
+                # Appending data for replay buffer
+                self.buffer_data.append([state_input, action_encoded, q_update_value ])
                    
             current_state = np.copy(next_state) 
 
-    def replay_buffer(self, k = 2):
+    def replay_buffer_fit(self, k = 2):
         # Sampling k data points from replay buffer
         num_rows = len(self.buffer_data)
         # print("Num rows: ", num_rows)
