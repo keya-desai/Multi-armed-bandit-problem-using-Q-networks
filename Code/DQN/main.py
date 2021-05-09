@@ -208,8 +208,6 @@ def compare_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, 
         plt.savefig('results/exp_b{}_mu1_q'.format(num_bandits))
         plt.show()
 
-        
-
 
 def compare_main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
     
@@ -289,8 +287,7 @@ def compare_main(num_bandits, time_steps, rounds, episodes, trials, epsilon, bet
     plt.show()
         
 
-
-def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_buffer = False):
+def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_buffer = False, replay_samples = 100):
     
     test_bandit = NormalBandit(num_bandits)  
     
@@ -315,7 +312,7 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, repla
                 bandit = NormalBandit(num_bandits) 
                 s.train_on_one_pass(bandit)
                 if replay_buffer and (j+1) % 5 == 0:
-                    s.replay_buffer()
+                    s.replay_buffer(replay_samples)
             
             # print(bandit.mean_sd_list)
             # for k,v in bandit.mean_sd_list:
@@ -326,13 +323,14 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, repla
             print("Round", str(i), "done.")
             plt.plot(average_regret, label = str((i+1)*episodes))
 
-        plt.plot(min_regret, '--', label = "Min regret")
+        # plt.plot(min_regret, '--', label = "Min regret")
         plt.title('Average regret v/s time steps for {} bandits. (epsilon = {}, beta = {})'.format(num_bandits, epsilon, beta))
         plt.xlabel('Time steps')
         plt.ylabel('Average regret over {} trials'.format(trials))
         plt.legend(title = 'Episode')
         plt.savefig('results/replay_q_k{}_e{}'.format(num_bandits, episodes))
         plt.show()
+
 
 def main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
     
@@ -382,15 +380,72 @@ def main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, 
         # plt.savefig('results/min_r_b{}_mu1_trials_{}_q'.format(num_ba=ndits, trials))
         plt.show()
 
+
+def compare_q_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_samples = 2):
+    
+    test_bandit = NormalBandit(num_bandits)   
+    s = [
+    DQNModel(test_bandit, episodes, time_steps, trials, epsilon, beta)
+    ,DQNModel(test_bandit, episodes, time_steps, trials, epsilon, beta)
+    # ,DoubleQModel(test_bandit, episodes, time_steps, trials, epsilon, beta)
+    # ,ActorCritic(test_bandit, episodes, time_steps, trials, epsilon, beta)
+    ]
+    methods = {0: 'Q', 1: 'Q with Replay buffer'}
+
+    # color = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    # for s in solvers:
+    print("Test bandits : ")
+    for k,v in test_bandit.mean_sd_list:
+        print("{:.3f}\t{:.3f}".format(k, v))
+
+    color = ['#4b6584', 
+            '#8e44ad', 
+            '#fc5c65', '#4b7bec', '#26de81', 
+            '#f39c12', '#2c2c54']
+
+    # ideal_regret = compute_min_regret(time_steps, test_bandit)
+    plt.figure(figsize=(10, 8))
+    # plt.plot(ideal_regret, '--' , color = color[0], label = "min")
+
+    average_regret = s[0].estimate_average_regret_on_permutations(test_bandit)
+    plt.plot(average_regret, '-.', color = color[0], label = "before")
+
+
+    for i in range(rounds):
+        for j in range(episodes):
+            bandit = NormalBandit(num_bandits) 
+            s[0].train_on_one_pass(bandit)
+            s[1].train_on_one_pass(bandit)
+            if (j+1) % 5 == 0:
+                s[1].replay_buffer(replay_samples)
+        
+        average_regret = s[0].estimate_average_regret_on_permutations(test_bandit)
+        plt.plot(average_regret, color = color[i+1], label = "Q : Round {}".format(i))
+        
+        average_regret = s[1].estimate_average_regret_on_permutations(test_bandit)
+        # print(average_regret)
+        plt.plot(average_regret, '--', color = color[i+1], label = "Q with replay buffer : Round {}".format(i))
+
+        print("Round", str(i), "done.")
+
+    plt.title('Average regret v/s time steps for {} bandits. (epsilon = {}, beta = {}, episodes per round = {})'.format(num_bandits, epsilon, beta, episodes))
+    plt.xlabel('Time steps')
+    plt.ylabel('Average regret over {} trials'.format(trials))
+    plt.legend()
+    plt.savefig('results/compare_q_replay_b{}_episodes{}'.format(num_bandits, episodes))
+    plt.show()
+        
+
 if __name__ == "__main__":
     num_bandits = 3
     rounds = 5
     
-    trials = 2
-    episodes = 5
+    trials = 10
+    episodes = 50
     # episodes = 5
 
-    time_steps = 10
+    time_steps = 100
     epsilon = 0.2
     beta = 0.9
-    main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_buffer = True)
+    # main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_buffer = True, replay_samples = 2)
+    compare_q_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_samples = 100)
