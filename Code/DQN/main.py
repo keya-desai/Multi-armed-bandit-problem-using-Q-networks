@@ -259,11 +259,12 @@ def compare_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, 
     str_exp = ""
     for m in test_bandit_exp.mean_list:
         print("{:.3f}".format(m))
-        str_exp += "({:.3f}, {:.3f})".format(k, v)
+        str_exp += "({:.3f})".format(m)
 
     color = ['#4b6584', 
+            '#8e44ad', 
             '#fc5c65', '#4b7bec', '#26de81', 
-            '#eb3b5a', '#3867d6', '#20bf6b']
+            '#f39c12', '#2c2c54']
 
     plt.figure(figsize=(10, 8))
     # min_regret = compute_min_regret(time_steps, test_bandit)
@@ -294,7 +295,7 @@ def compare_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, 
         plt.xlabel('Time steps')
         plt.ylabel('Average regret over {} trials'.format(trials))
         plt.legend(title = 'Round')
-        plt.savefig('results/exp_normal_b{}'.format(num_bandits))
+        plt.savefig('results/exp_normal_b{}_mean_regret_2'.format(num_bandits))
         plt.show()
 
 def compare_main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
@@ -530,9 +531,11 @@ def compare_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, b
     # color = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
     # for s in solvers:
     print("Test bandits : ")
+    test_str = ""
     for k,v in test_bandit.mean_sd_list:
         print("{:.3f}\t{:.3f}".format(k, v))
-
+        test_str += "({:.3f}, {:.3f})".format(k, v)
+    print(test_str)
     color = ['#4b6584', 
             '#8e44ad', 
             '#fc5c65', '#4b7bec', '#26de81', 
@@ -552,8 +555,8 @@ def compare_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, b
             s[0].train_on_one_pass(bandit)
             s[1].train_on_one_pass(bandit)
             if (j+1) % 5 == 0:
-                s[0].replay_buffer_fit(replay_samples = 100)
-                s[1].replay_buffer_fit(replay_samples = 250)
+                s[0].replay_buffer_fit(k = 100)
+                s[1].replay_buffer_fit(k = 250)
         
         average_regret = s[0].estimate_average_regret(test_bandit)
         plt.plot(average_regret, '--', color = color[i+1], label = "Q RB (samples = 100): Round {}".format(i))
@@ -564,7 +567,7 @@ def compare_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, b
 
         print("Round", str(i), "done.")
 
-    plt.title('Average regret v/s time steps for {} bandits. (epsilon = {}, beta = {}, episodes per round = {})'.format(num_bandits, epsilon, beta, episodes))
+    plt.title('Test bandit : {} \n Average regret v/s time steps for {} bandits. \n (epsilon = {}, beta = {}, episodes per round = {})'.format(test_str, num_bandits, epsilon, beta, episodes))
     plt.xlabel('Time steps')
     plt.ylabel('Average regret over {} trials'.format(trials))
     plt.legend()
