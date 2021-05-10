@@ -486,9 +486,11 @@ def compare_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, b
     # color = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
     # for s in solvers:
     print("Test bandits : ")
+    test_str = ""
     for k,v in test_bandit.mean_sd_list:
         print("{:.3f}\t{:.3f}".format(k, v))
-
+        test_str += "({:.3f}, {:.3f})".format(k, v)
+    print(test_str)
     color = ['#4b6584', 
             '#8e44ad', 
             '#fc5c65', '#4b7bec', '#26de81', 
@@ -508,19 +510,19 @@ def compare_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, b
             s[0].train_on_one_pass(bandit)
             s[1].train_on_one_pass(bandit)
             if (j+1) % 5 == 0:
-                s[0].replay_buffer_fit(replay_samples = 100)
-                s[1].replay_buffer_fit(replay_samples = 250)
+                s[0].replay_buffer_fit(k = 100)
+                s[1].replay_buffer_fit(k = 250)
         
-        average_regret = s[0].estimate_average_regret_on_permutations(test_bandit)
+        average_regret = s[0].estimate_average_regret(test_bandit)
         plt.plot(average_regret, '--', color = color[i+1], label = "Q RB (samples = 100): Round {}".format(i))
         
-        average_regret = s[1].estimate_average_regret_on_permutations(test_bandit)
+        average_regret = s[1].estimate_average_regret(test_bandit)
         # print(average_regret)
         plt.plot(average_regret, color = color[i+1], label = "Q RB (samples = 250) : Round {}".format(i))
 
         print("Round", str(i), "done.")
 
-    plt.title('Average regret v/s time steps for {} bandits. (epsilon = {}, beta = {}, episodes per round = {})'.format(num_bandits, epsilon, beta, episodes))
+    plt.title('Test bandit : {} \n Average regret v/s time steps for {} bandits. \n (epsilon = {}, beta = {}, episodes per round = {})'.format(test_str, num_bandits, epsilon, beta, episodes))
     plt.xlabel('Time steps')
     plt.ylabel('Average regret over {} trials'.format(trials))
     plt.legend()
@@ -529,13 +531,13 @@ def compare_replay(num_bandits, time_steps, rounds, episodes, trials, epsilon, b
 
 if __name__ == "__main__":
     num_bandits = 3
-    rounds = 3
+    rounds = 5
     
-    trials = 2
-    episodes = 3
+    trials = 10
+    episodes = 50
     # episodes = 5
 
-    time_steps = 10
+    time_steps = 100
     epsilon = 0.2
     beta = 0.9
     # main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta, replay_buffer = True, replay_samples = 2)
