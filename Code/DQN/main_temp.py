@@ -333,72 +333,62 @@ def main(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
         # plt.savefig('results/min_r_b{}_mu1_trials_{}_q'.format(num_ba=ndits, trials))
         plt.show()
 
-def main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
+def multiple_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta):
     
-    num_test_bandits = 2
+    num_test_bandits = 3
     test_bandits = [NormalBandit(num_bandits) for _ in range(num_test_bandits)]
     
-    solvers = [
-    DQNModel(test_bandits[0], episodes, time_steps, trials, epsilon, beta)
-    # DoubleQModel(test_bandit, episodes, time_steps, trials, epsilon, beta)
-    # ActorCritic(test_bandit, episodes, time_steps, trials, epsilon, beta)
-    ]
+    s = DQNModel(test_bandits[0], episodes, time_steps, trials, epsilon, beta)
+
+    bandit_mean_str = []
 
     for i in range(num_test_bandits):
         print("\nTest bandit :", i+1)
         bandit = test_bandits[i]
 
+        string = ""
         for k,v in bandit.mean_sd_list:
             print("{:.3f}\t{:.3f}".format(k, v))
-
-        min_regret = compute_min_regret(time_steps, bandit)
-        
-        plt.subplot(1, 2, i+1)
-        plt.plot(min_regret, label = "min")
-        plt.legend()
+            string += "({:.3f}, {:.3f})".format(k, v)
+        bandit_mean_str.append(string)
     
-    plt.show()
-    # exit()
-    
-
-
-
-    # min_regret_1 = compute_min_regret(time_steps, test_bandit_1)
-    for s in solvers:
-        average_regret = s.estimate_average_regret_on_permutations(bandit)
+        # min_regret = compute_min_regret(time_steps, bandit)
+        average_regret = s.estimate_average_regret(bandit)    
+        plt.figure(i, figsize = (10, 8))
+        # plt.plot(min_regret, '--', label = "min")
         plt.plot(average_regret, label = "before")
+    
+    for i in range(rounds):
+        for j in range(episodes):
+            bandit = NormalBandit(num_bandits) 
+            s.train_on_one_pass(bandit)
+
+        for test_bandit_idx in range(num_test_bandits):
+            average_regret = s.estimate_average_regret(test_bandits[test_bandit_idx])
+            plt.figure(test_bandit_idx)
+            plt.plot(average_regret, label = i)
         
-        for i in range(rounds):
-            for j in range(episodes):
-                bandit = NormalBandit(num_bandits) 
-                s.train_on_one_pass(bandit)
-            
+        print("Round", str(i), "done.")
 
-            for test_bandit_idx in range(num_test_bandits):
-                average_regret = s.estimate_average_regret_on_permutations(test_bandits[test_bandit_idx])
-                plt.subplot(1, 2, test_bandit_idx+1)
-                plt.plot(average_regret, label = str((i+1)*episodes))
-            
-            print("Round", str(i), "done.")
-            
-
-        plt.plot(min_regret, '--', label = "Min regret")
-        plt.title('Average regret v/s time steps for {} bandits. (epsilon = {}, beta = {})'.format(num_bandits, epsilon, beta))
+    # plt.plot(min_regret, '--', label = "Min regret")
+    for test_bandit_idx in range(num_test_bandits):
+        plt.figure(test_bandit_idx)
+        plt.title(' Test bandit : {} \n Average regret v/s time steps for {} bandits. \n (e = {}, b = {}, episodes per round = {})'.format(bandit_mean_str[test_bandit_idx], num_bandits, epsilon, beta, episodes))
         plt.xlabel('Time steps')
         plt.ylabel('Average regret over {} trials'.format(trials))
-        plt.legend(title = 'Episode')
-        # plt.savefig('results/min_r_b{}_mu1_trials_{}_q'.format(num_ba=ndits, trials))
-        plt.show()
+        plt.legend(title = 'Round')
+        plt.savefig('results/multi_b{}_e{}_{}'.format(num_bandits, episodes, test_bandit_idx))
+    plt.show()
 
 if __name__ == "__main__":
     num_bandits = 3
-    rounds = 1
+    rounds = 5
     
-    trials = 2
+    trials = 10
     episodes = 5
     # episodes = 5
 
-    time_steps = 10
+    time_steps = 100
     epsilon = 0.2
     beta = 0.9
-    main_multip_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta)
+    multiple_test_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, beta)
