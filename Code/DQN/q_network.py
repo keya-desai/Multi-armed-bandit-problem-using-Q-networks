@@ -61,7 +61,7 @@ class Solver:
 
 
 class DQNModel(Solver):
-    def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta, replay_buffer = False):
+    def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta, replay_buffer = False, decaying_epsilon = False):
         super().__init__(bandit)
         self.episodes = episodes
         self.time_steps = time_steps
@@ -70,6 +70,7 @@ class DQNModel(Solver):
         self.beta = beta
         self.buffer_data = []
         self.replay_buffer = replay_buffer
+        self.decaying_epsilon = decaying_epsilon
         #########################################################################################################################################
         
         layer_init = tf.keras.initializers.VarianceScaling()
@@ -98,6 +99,9 @@ class DQNModel(Solver):
         current_state = np.zeros((num_bandits, 2))
         
         for t in range(self.time_steps):
+
+            if self.decaying_epsilon:
+                self.epsilon = self.epsilon/(t+1)
             
             if random.random() < self.epsilon:
                 action_selected = np.random.randint(num_bandits)
