@@ -45,6 +45,9 @@ class NormalBandit:
     def get_max_mean(self):
         return self.max_mean
 
+    def get_mean(self, i):
+        return self.mean_sd_list[i][0]
+
 class NormalBanditWithSumZero:
     
     def __init__(self, k):
@@ -81,6 +84,9 @@ class NormalBanditWithSumZero:
 
     def get_max_mean(self):
         return self.max_mean
+
+    def get_mean(self, i):
+        return self.mean_sd_list[i][0]
 
 class ExponentialBandit:
 
@@ -123,6 +129,9 @@ class ExponentialBandit:
 
     def get_max_mean(self):
         return self.max_mean
+
+    def get_mean(self, i):
+        return self.mean_list[i]
 
 
 def compute_min_regret(total_time, bandit):
@@ -243,7 +252,7 @@ def compare_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, 
             print("Round", str(i), "done.")
             
         
-        plt.title('Exponential : {} \t Normal : {} \n Average regret v/s time steps for {} bandits. \n (e = {}, b = {}, episodes per round = {})'.format(str_exp, str_normal, num_bandits, epsilon, beta, episodes))
+        plt.title('Exponential : {}   Normal : {} \n Average regret v/s time steps for {} bandits. \n (e = {}, b = {}, episodes per round = {})'.format(str_exp, str_normal, num_bandits, epsilon, beta, episodes))
         plt.xlabel('Time steps')
         plt.ylabel('Average regret over {} trials'.format(trials))
         plt.legend(title = 'Round')

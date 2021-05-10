@@ -155,8 +155,8 @@ class DQNModel(Solver):
             action_encoded = tf.keras.utils.to_categorical(action_selected, bandit.k)
             
             reward = bandit.generate_reward(action_selected)
-            # bandit_mean = bandit.mean_sd_list[action_selected][0]
-            rewards_generated.append( max_reward - reward)
+            bandit_mean = bandit.get_mean(action_selected)
+            rewards_generated.append( max_reward - bandit_mean)
             
             bandit_mean  = current_state[ action_selected ][0]
             bandit_count = current_state[ action_selected ][1]
