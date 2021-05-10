@@ -221,11 +221,12 @@ def compare_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, 
     str_exp = ""
     for m in test_bandit_exp.mean_list:
         print("{:.3f}".format(m))
-        str_exp += "({:.3f}, {:.3f})".format(k, v)
+        str_exp += "({:.3f})".format(m)
 
     color = ['#4b6584', 
+            '#8e44ad', 
             '#fc5c65', '#4b7bec', '#26de81', 
-            '#eb3b5a', '#3867d6', '#20bf6b']
+            '#f39c12', '#2c2c54']
 
     plt.figure(figsize=(10, 8))
     # min_regret = compute_min_regret(time_steps, test_bandit)
@@ -256,7 +257,7 @@ def compare_bandits(num_bandits, time_steps, rounds, episodes, trials, epsilon, 
         plt.xlabel('Time steps')
         plt.ylabel('Average regret over {} trials'.format(trials))
         plt.legend(title = 'Round')
-        plt.savefig('results/exp_normal_b{}'.format(num_bandits))
+        plt.savefig('results/exp_normal_b{}_mean_regret_2'.format(num_bandits))
         plt.show()
 
 
