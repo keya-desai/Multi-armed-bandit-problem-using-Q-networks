@@ -49,7 +49,7 @@ class Solver:
         average_regret = np.zeros(self.time_steps)
         
         for i in range(num_bandits):
-          temp_bandit = bandit
+          temp_bandit = bandit.copy()
           temp_bandit.mean_sd_list = mu_sigma_dicts[i]
           regret = self.estimate_average_regret(temp_bandit)
           average_regret += regret
@@ -61,7 +61,7 @@ class Solver:
 
 
 class DQNModel(Solver):
-    def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta, replay_buffer = False, decaying_epsilon = False):
+    def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta, replay_buffer = False, decaying_epsilon = False, big_reward = False):
         super().__init__(bandit)
         self.episodes = episodes
         self.time_steps = time_steps
@@ -69,8 +69,10 @@ class DQNModel(Solver):
         self.epsilon = epsilon
         self.beta = beta
         self.buffer_data = []
+
         self.replay_buffer = replay_buffer
         self.decaying_epsilon = decaying_epsilon
+        self.big_reward = big_reward
         #########################################################################################################################################
         
         layer_init = tf.keras.initializers.VarianceScaling()
@@ -122,6 +124,15 @@ class DQNModel(Solver):
             next_q_value = np.max(self.Q_value_compute.predict(np.asarray([next_state]))[0])
             q_update_value = reward + self.beta * next_q_value
             
+            if self.big_reward and t == self.time_steps - 1 : 
+                max_bandit_mean = bandit.get_max_mean()
+                selected_bandit_mean = bandit.get_mean(action_selected)
+                if max_bandit_mean == selected_bandit_mean:
+                    q_update_value = 10
+                else:
+                    q_update_value = 0
+
+
             state_input = np.asarray([current_state])
             
             if not self.replay_buffer:
