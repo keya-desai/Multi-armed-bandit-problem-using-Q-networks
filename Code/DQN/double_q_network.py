@@ -18,13 +18,14 @@ import tensorflow.keras.layers as layers
 from q_network import Solver
 
 class DoubleQModel(Solver):
-	def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta):
+	def __init__(self, bandit, episodes, time_steps, trials, epsilon, beta, decaying_epsilon):
 		super().__init__(bandit)
 		self.episodes = episodes
 		self.time_steps = time_steps
 		self.trials = trials
 		self.epsilon = epsilon
 		self.beta = beta
+		self.decaying_epsilon = decaying_epsilon
 
 		##############################################################################################
 		layer_init = tf.keras.initializers.VarianceScaling()
@@ -67,6 +68,8 @@ class DoubleQModel(Solver):
 		network = 'A'
 		
 		for t in range(self.time_steps):    
+			if self.decaying_epsilon:
+				self.epsilon = self.epsilon/(t+1)
 			# Choose network A or B
 			if np.random.rand(1) < 0.5:
 			  network = 'A'
